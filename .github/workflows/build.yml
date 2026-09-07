@@ -77,8 +77,7 @@ jobs:
           cat << 'EOF' > app/src/main/AndroidManifest.xml
           <?xml version="1.0" encoding="utf-8"?>
           <manifest xmlns:android="http://schemas.android.com/apk/res/android"
-              xmlns:tools="http://schemas.android.com/tools"
-              package="com.stark.jarvis">
+              xmlns:tools="http://schemas.android.com/tools">
               <uses-permission android:name="android.permission.RECORD_AUDIO" />
               <uses-permission android:name="android.permission.INTERNET" />
               <uses-permission android:name="android.permission.USE_BIOMETRIC" />
@@ -160,7 +159,7 @@ jobs:
               android:viewportHeight="100">
               <path android:fillColor="#080C14" android:pathData="M0,0h100v100h-100z" />
               <path android:strokeColor="#00E5FF" android:strokeWidth="3.5" android:pathData="M 50, 10 A 40,40 0 1,1 49.99,10" />
-              <path android:strokeColor="#8000E5FF" android:strokeWidth="5" android:strokeDasharray="9,6" android:pathData="M 50, 22 A 28,28 0 1,1 49.99,22" />
+              <path android:strokeColor="#8000E5FF" android:strokeWidth="5" android:pathData="M 50, 22 A 28,28 0 1,1 49.99,22" />
               <path android:fillColor="#00E5FF" android:pathData="M 50, 36 A 14,14 0 1,1 49.99,36" />
           </vector>
           EOF

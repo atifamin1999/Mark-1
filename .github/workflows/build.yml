@@ -1,0 +1,1327 @@
+name: Build Mark 1 APK Automatically
+
+on:
+  push:
+    branches: [ "main", "master" ]
+  workflow_dispatch:
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Generate All Mark 1 Source Files with Amin Ansari Ownership
+        run: |
+          mkdir -p app/src/main/java/com/stark/jarvis
+          mkdir -p app/src/main/res/drawable
+          mkdir -p app/src/main/res/layout
+          mkdir -p app/src/main/res/values
+
+          cat << 'EOF' > settings.gradle
+          pluginManagement {
+              repositories {
+                  google()
+                  mavenCentral()
+                  gradlePluginPortal()
+              }
+          }
+          dependencyResolutionManagement {
+              repositoriesMode.set(RepositoriesMode.FAIL_ON_PROJECT_REPOS)
+              repositories {
+                  google()
+                  mavenCentral()
+              }
+          }
+          rootProject.name = "mark1"
+          include ':app'
+          EOF
+
+          cat << 'EOF' > build.gradle
+          plugins {
+              id 'com.android.application' version '8.2.2' apply false
+          }
+          EOF
+
+          cat << 'EOF' > app/build.gradle
+          plugins {
+              id 'com.android.application'
+          }
+          android {
+              namespace 'com.stark.jarvis'
+              compileSdk 34
+              defaultConfig {
+                  applicationId "com.stark.jarvis"
+                  minSdk 24
+                  targetSdk 34
+                  versionCode 1
+                  versionName "1.0"
+              }
+              buildTypes {
+                  release {
+                      minifyEnabled false
+                  }
+              }
+          }
+          dependencies {
+              implementation 'androidx.appcompat:appcompat:1.6.1'
+              implementation 'com.google.android.material:material:1.11.0'
+              implementation 'androidx.constraintlayout:constraintlayout:2.1.4'
+              implementation 'androidx.biometric:biometric:1.1.0'
+          }
+          EOF
+
+          cat << 'EOF' > app/src/main/AndroidManifest.xml
+          <?xml version="1.0" encoding="utf-8"?>
+          <manifest xmlns:android="http://schemas.android.com/apk/res/android"
+              xmlns:tools="http://schemas.android.com/tools"
+              package="com.stark.jarvis">
+              <uses-permission android:name="android.permission.RECORD_AUDIO" />
+              <uses-permission android:name="android.permission.INTERNET" />
+              <uses-permission android:name="android.permission.USE_BIOMETRIC" />
+              <uses-permission android:name="android.permission.READ_PHONE_STATE" />
+              <uses-permission android:name="android.permission.READ_CALL_LOG" />
+              <uses-permission android:name="android.permission.READ_CONTACTS" />
+              <uses-permission android:name="android.permission.ANSWER_PHONE_CALLS" />
+              <uses-permission android:name="android.permission.SEND_SMS" />
+              <uses-permission android:name="android.permission.MODIFY_AUDIO_SETTINGS" />
+              <uses-permission android:name="android.permission.QUERY_ALL_PACKAGES" tools:ignore="QueryAllPackagesPermission" />
+              <application
+                  android:allowBackup="true"
+                  android:icon="@drawable/arc_reactor"
+                  android:label="@string/app_name"
+                  android:roundIcon="@drawable/arc_reactor"
+                  android:supportsRtl="true"
+                  android:theme="@style/Theme.JarvisHUD">
+                  <activity android:name=".SplashActivity" android:exported="true">
+                      <intent-filter>
+                          <action android:name="android.intent.action.MAIN" />
+                          <category android:name="android.intent.category.LAUNCHER" />
+                      </intent-filter>
+                  </activity>
+                  <activity android:name=".SetupWizardActivity" android:exported="false" />
+                  <activity android:name=".SecurityGateActivity" android:exported="false" />
+                  <activity android:name=".SettingsActivity" android:exported="false" />
+                  <activity android:name=".MainActivity" android:exported="false" />
+                  <receiver android:name=".IncomingCallReceiver" android:exported="true">
+                      <intent-filter>
+                          <action android:name="android.intent.action.PHONE_STATE" />
+                      </intent-filter>
+                  </receiver>
+                  <service
+                      android:name=".JarvisNotificationService"
+                      android:label="Jarvis Notification Engine"
+                      android:permission="android.permission.BIND_NOTIFICATION_LISTENER_SERVICE"
+                      android:exported="true">
+                      <intent-filter>
+                          <action android:name="android.service.notification.NotificationListenerService" />
+                      </intent-filter>
+                  </service>
+              </application>
+          </manifest>
+          EOF
+
+          cat << 'EOF' > app/src/main/res/values/colors.xml
+          <?xml version="1.0" encoding="utf-8"?>
+          <resources>
+              <color name="bg_dark">#080C14</color>
+              <color name="hud_cyan">#00E5FF</color>
+              <color name="hud_glow">#1A00E5FF</color>
+              <color name="hud_dim">#8AFFFFFF</color>
+              <color name="hud_red">#FF5252</color>
+              <color name="hud_btn">#111927</color>
+          </resources>
+          EOF
+
+          cat << 'EOF' > app/src/main/res/values/strings.xml
+          <resources>
+              <string name="app_name">Mark 1</string>
+          </resources>
+          EOF
+
+          cat << 'EOF' > app/src/main/res/values/themes.xml
+          <resources>
+              <style name="Theme.JarvisHUD" parent="Theme.MaterialComponents.DayNight.NoActionBar">
+                  <item name="colorPrimary">@color/hud_cyan</item>
+                  <item name="android:statusBarColor">@color/bg_dark</item>
+                  <item name="android:windowBackground">@color/bg_dark</item>
+              </style>
+          </resources>
+          EOF
+
+          cat << 'EOF' > app/src/main/res/drawable/arc_reactor.xml
+          <vector xmlns:android="http://schemas.android.com/apk/res/android"
+              android:width="120dp"
+              android:height="120dp"
+              android:viewportWidth="100"
+              android:viewportHeight="100">
+              <path android:fillColor="#080C14" android:pathData="M0,0h100v100h-100z" />
+              <path android:strokeColor="#00E5FF" android:strokeWidth="3.5" android:pathData="M 50, 10 A 40,40 0 1,1 49.99,10" />
+              <path android:strokeColor="#8000E5FF" android:strokeWidth="5" android:strokeDasharray="9,6" android:pathData="M 50, 22 A 28,28 0 1,1 49.99,22" />
+              <path android:fillColor="#00E5FF" android:pathData="M 50, 36 A 14,14 0 1,1 49.99,36" />
+          </vector>
+          EOF
+
+          cat << 'EOF' > app/src/main/res/layout/activity_splash.xml
+          <?xml version="1.0" encoding="utf-8"?>
+          <RelativeLayout xmlns:android="http://schemas.android.com/apk/res/android"
+              android:layout_width="match_parent"
+              android:layout_height="match_parent"
+              android:background="@color/bg_dark">
+              <ImageView
+                  android:id="@+id/ivSplashLogo"
+                  android:layout_width="160dp"
+                  android:layout_height="160dp"
+                  android:layout_centerInParent="true"
+                  android:src="@drawable/arc_reactor" />
+              <TextView
+                  android:id="@+id/tvBoot"
+                  android:layout_width="wrap_content"
+                  android:layout_height="wrap_content"
+                  android:layout_below="@id/ivSplashLogo"
+                  android:layout_centerHorizontal="true"
+                  android:layout_marginTop="24dp"
+                  android:letterSpacing="0.25"
+                  android:text="MARK 1 PROTOCOL BOOTING..."
+                  android:textColor="@color/hud_cyan"
+                  android:textSize="14sp"
+                  android:textStyle="bold" />
+              <TextView
+                  android:layout_width="wrap_content"
+                  android:layout_height="wrap_content"
+                  android:layout_alignParentBottom="true"
+                  android:layout_centerHorizontal="true"
+                  android:layout_marginBottom="30dp"
+                  android:letterSpacing="0.15"
+                  android:text="OWNER &amp; ARCHITECT: AMIN ANSARI\nPATENT REGISTRATION: MARK-1-AA-2026"
+                  android:textAlignment="center"
+                  android:textColor="@color/hud_dim"
+                  android:textSize="11sp" />
+          </RelativeLayout>
+          EOF
+
+          cat << 'EOF' > app/src/main/res/layout/activity_setup_wizard.xml
+          <?xml version="1.0" encoding="utf-8"?>
+          <ScrollView xmlns:android="http://schemas.android.com/apk/res/android"
+              android:layout_width="match_parent"
+              android:layout_height="match_parent"
+              android:background="@color/bg_dark"
+              android:padding="24dp">
+              <LinearLayout
+                  android:layout_width="match_parent"
+                  android:layout_height="wrap_content"
+                  android:orientation="vertical">
+                  <TextView
+                      android:layout_width="wrap_content"
+                      android:layout_height="wrap_content"
+                      android:layout_marginTop="20dp"
+                      android:text="MARK 1 ONBOARDING PROTOCOL"
+                      android:textColor="@color/hud_cyan"
+                      android:textSize="18sp"
+                      android:textStyle="bold" />
+                  <TextView
+                      android:layout_width="wrap_content"
+                      android:layout_height="wrap_content"
+                      android:layout_marginTop="4dp"
+                      android:text="System Architect &amp; Owner: Amin Ansari"
+                      android:textColor="@color/hud_dim"
+                      android:textSize="12sp" />
+                  <TextView
+                      android:layout_width="wrap_content"
+                      android:layout_height="wrap_content"
+                      android:layout_marginTop="24dp"
+                      android:text="1. What should Jarvis call you?"
+                      android:textColor="@color/hud_cyan" />
+                  <EditText
+                      android:id="@+id/etUserName"
+                      android:layout_width="match_parent"
+                      android:layout_height="wrap_content"
+                      android:hint="e.g. Sir, Boss, Amin"
+                      android:textColor="#FFFFFF"
+                      android:textColorHint="#44FFFFFF"
+                      android:backgroundTint="@color/hud_cyan" />
+                  <TextView
+                      android:layout_width="wrap_content"
+                      android:layout_height="wrap_content"
+                      android:layout_marginTop="16dp"
+                      android:text="2. Voice Wake-Word:"
+                      android:textColor="@color/hud_cyan" />
+                  <EditText
+                      android:id="@+id/etVoiceTrigger"
+                      android:layout_width="match_parent"
+                      android:layout_height="wrap_content"
+                      android:hint="e.g. jarvis"
+                      android:textColor="#FFFFFF"
+                      android:textColorHint="#44FFFFFF"
+                      android:backgroundTint="@color/hud_cyan" />
+                  <TextView
+                      android:layout_width="wrap_content"
+                      android:layout_height="wrap_content"
+                      android:layout_marginTop="16dp"
+                      android:text="3. Fallback 4-Digit Security PIN:"
+                      android:textColor="@color/hud_cyan" />
+                  <EditText
+                      android:id="@+id/etSecurityPin"
+                      android:layout_width="match_parent"
+                      android:layout_height="wrap_content"
+                      android:hint="4-digit PIN"
+                      android:inputType="numberPassword"
+                      android:maxLength="4"
+                      android:textColor="#FFFFFF"
+                      android:textColorHint="#44FFFFFF"
+                      android:backgroundTint="@color/hud_cyan" />
+                  <Button
+                      android:id="@+id/btnSaveProfile"
+                      android:layout_width="match_parent"
+                      android:layout_height="wrap_content"
+                      android:layout_marginTop="36dp"
+                      android:backgroundTint="@color/hud_cyan"
+                      android:text="INITIALIZE PROTOCOL"
+                      android:textColor="@color/bg_dark"
+                      android:textStyle="bold" />
+              </LinearLayout>
+          </ScrollView>
+          EOF
+
+          cat << 'EOF' > app/src/main/res/layout/activity_security_gate.xml
+          <?xml version="1.0" encoding="utf-8"?>
+          <LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+              android:layout_width="match_parent"
+              android:layout_height="match_parent"
+              android:background="@color/bg_dark"
+              android:orientation="vertical"
+              android:gravity="center"
+              android:padding="24dp">
+              <ImageView
+                  android:layout_width="100dp"
+                  android:layout_height="100dp"
+                  android:src="@drawable/arc_reactor" />
+              <TextView
+                  android:id="@+id/tvGateStatus"
+                  android:layout_width="wrap_content"
+                  android:layout_height="wrap_content"
+                  android:layout_marginTop="20dp"
+                  android:text="CLEARANCE CHECK"
+                  android:textColor="@color/hud_cyan"
+                  android:textSize="18sp"
+                  android:textStyle="bold" />
+              <TextView
+                  android:id="@+id/tvAttempts"
+                  android:layout_width="wrap_content"
+                  android:layout_height="wrap_content"
+                  android:layout_marginTop="8dp"
+                  android:text="Voice attempts remaining: 3"
+                  android:textColor="@color/hud_dim" />
+              <Button
+                  android:id="@+id/btnVoiceAuth"
+                  android:layout_width="match_parent"
+                  android:layout_height="wrap_content"
+                  android:layout_marginTop="32dp"
+                  android:backgroundTint="@color/hud_cyan"
+                  android:textColor="@color/bg_dark"
+                  android:text="VERIFY VOICE PATTERN" />
+              <Button
+                  android:id="@+id/btnBiometricAuth"
+                  android:layout_width="match_parent"
+                  android:layout_height="wrap_content"
+                  android:layout_marginTop="12dp"
+                  android:backgroundTint="@color/hud_btn"
+                  android:textColor="#FFFFFF"
+                  android:text="FACE / BIOMETRIC UNLOCK" />
+              <Button
+                  android:id="@+id/btnPinAuth"
+                  android:layout_width="match_parent"
+                  android:layout_height="wrap_content"
+                  android:layout_marginTop="12dp"
+                  android:backgroundTint="@color/hud_btn"
+                  android:textColor="#FFFFFF"
+                  android:text="ENTER PIN CODE" />
+          </LinearLayout>
+          EOF
+
+          cat << 'EOF' > app/src/main/res/layout/activity_settings.xml
+          <?xml version="1.0" encoding="utf-8"?>
+          <LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+              android:layout_width="match_parent"
+              android:layout_height="match_parent"
+              android:background="@color/bg_dark"
+              android:orientation="vertical"
+              android:padding="24dp">
+              <TextView
+                  android:layout_width="wrap_content"
+                  android:layout_height="wrap_content"
+                  android:layout_marginTop="20dp"
+                  android:text="MARK 1 CONFIGURATION"
+                  android:textColor="@color/hud_cyan"
+                  android:textSize="20sp"
+                  android:textStyle="bold" />
+              <TextView
+                  android:id="@+id/tvCurrentConfig"
+                  android:layout_width="match_parent"
+                  android:layout_height="wrap_content"
+                  android:layout_marginTop="16dp"
+                  android:textColor="@color/hud_dim"
+                  android:lineSpacingExtra="4dp" />
+              <TextView
+                  android:layout_width="match_parent"
+                  android:layout_height="wrap_content"
+                  android:layout_marginTop="16dp"
+                  android:background="@color/hud_glow"
+                  android:padding="12dp"
+                  android:text="PATENT &amp; ARCHITECTURE RIGHTS:\nSole Owner &amp; Inventor: Amin Ansari\nAuthorized Build: Mark 1 Core OS"
+                  android:textColor="@color/hud_cyan"
+                  android:textSize="12sp" />
+              <Button
+                  android:id="@+id/btnEditProfile"
+                  android:layout_width="match_parent"
+                  android:layout_height="wrap_content"
+                  android:layout_marginTop="24dp"
+                  android:backgroundTint="@color/hud_cyan"
+                  android:textColor="@color/bg_dark"
+                  android:text="CHANGE PROFILE / VOICE TRIGGER" />
+              <Button
+                  android:id="@+id/btnResetEverything"
+                  android:layout_width="match_parent"
+                  android:layout_height="wrap_content"
+                  android:layout_marginTop="12dp"
+                  android:backgroundTint="@color/hud_red"
+                  android:textColor="#FFFFFF"
+                  android:text="FACTORY RESET PROTOCOL" />
+          </LinearLayout>
+          EOF
+
+          cat << 'EOF' > app/src/main/res/layout/activity_main.xml
+          <?xml version="1.0" encoding="utf-8"?>
+          <RelativeLayout xmlns:android="http://schemas.android.com/apk/res/android"
+              android:layout_width="match_parent"
+              android:layout_height="match_parent"
+              android:background="@color/bg_dark"
+              android:padding="20dp">
+              <Button
+                  android:id="@+id/btnOpenSettings"
+                  android:layout_width="wrap_content"
+                  android:layout_height="40dp"
+                  android:layout_alignParentEnd="true"
+                  android:backgroundTint="@color/hud_glow"
+                  android:text="⚙ SETTINGS"
+                  android:textColor="@color/hud_cyan"
+                  android:textSize="12sp" />
+              <TextView
+                  android:id="@+id/tvMainStatus"
+                  android:layout_width="wrap_content"
+                  android:layout_height="wrap_content"
+                  android:layout_centerHorizontal="true"
+                  android:layout_marginTop="40dp"
+                  android:letterSpacing="0.2"
+                  android:text="MARK 1 // ONLINE"
+                  android:textColor="@color/hud_cyan"
+                  android:textSize="18sp"
+                  android:textStyle="bold" />
+              <ImageView
+                  android:id="@+id/ivArcReactorBtn"
+                  android:layout_width="150dp"
+                  android:layout_height="150dp"
+                  android:layout_centerInParent="true"
+                  android:src="@drawable/arc_reactor" />
+              <TextView
+                  android:id="@+id/tvInstruction"
+                  android:layout_width="wrap_content"
+                  android:layout_height="wrap_content"
+                  android:layout_below="@id/ivArcReactorBtn"
+                  android:layout_centerHorizontal="true"
+                  android:layout_marginTop="20dp"
+                  android:text="Tap Arc Reactor to transmit orders"
+                  android:textColor="@color/hud_dim" />
+              <TextView
+                  android:id="@+id/tvSubtitle"
+                  android:layout_width="match_parent"
+                  android:layout_height="wrap_content"
+                  android:layout_below="@id/tvInstruction"
+                  android:layout_marginTop="16dp"
+                  android:background="@color/hud_glow"
+                  android:gravity="center"
+                  android:padding="14dp"
+                  android:text="Systems awaiting orders, sir."
+                  android:textColor="#FFFFFF" />
+              <TextView
+                  android:layout_width="wrap_content"
+                  android:layout_height="wrap_content"
+                  android:layout_alignParentBottom="true"
+                  android:layout_centerHorizontal="true"
+                  android:letterSpacing="0.1"
+                  android:text="PATENT: AMIN ANSARI // MARK 1"
+                  android:textColor="#4400E5FF"
+                  android:textSize="10sp" />
+          </RelativeLayout>
+          EOF
+
+          cat << 'EOF' > app/src/main/java/com/stark/jarvis/SplashActivity.java
+          package com.stark.jarvis;
+          import android.content.Context;
+          import android.content.Intent;
+          import android.content.SharedPreferences;
+          import android.os.Bundle;
+          import android.os.Handler;
+          import android.os.Looper;
+          import androidx.appcompat.app.AppCompatActivity;
+
+          public class SplashActivity extends AppCompatActivity {
+              @Override
+              protected void onCreate(Bundle savedInstanceState) {
+                  super.onCreate(savedInstanceState);
+                  setContentView(R.layout.activity_splash);
+                  new Handler(Looper.getMainLooper()).postDelayed(() -> {
+                      SharedPreferences prefs = getSharedPreferences("JarvisPrefs", Context.MODE_PRIVATE);
+                      boolean isConfigured = prefs.getBoolean("is_setup_done", false);
+                      if (!isConfigured) {
+                          startActivity(new Intent(SplashActivity.this, SetupWizardActivity.class));
+                      } else {
+                          startActivity(new Intent(SplashActivity.this, SecurityGateActivity.class));
+                      }
+                      finish();
+                  }, 2000);
+              }
+          }
+          EOF
+
+          cat << 'EOF' > app/src/main/java/com/stark/jarvis/SetupWizardActivity.java
+          package com.stark.jarvis;
+          import android.content.Context;
+          import android.content.Intent;
+          import android.content.SharedPreferences;
+          import android.os.Bundle;
+          import android.widget.Button;
+          import android.widget.EditText;
+          import android.widget.Toast;
+          import androidx.appcompat.app.AppCompatActivity;
+
+          public class SetupWizardActivity extends AppCompatActivity {
+              @Override
+              protected void onCreate(Bundle savedInstanceState) {
+                  super.onCreate(savedInstanceState);
+                  setContentView(R.layout.activity_setup_wizard);
+                  EditText etName = findViewById(R.id.etUserName);
+                  EditText etTrigger = findViewById(R.id.etVoiceTrigger);
+                  EditText etPin = findViewById(R.id.etSecurityPin);
+                  Button btnSave = findViewById(R.id.btnSaveProfile);
+
+                  SharedPreferences prefs = getSharedPreferences("JarvisPrefs", Context.MODE_PRIVATE);
+                  etName.setText(prefs.getString("user_name", "Sir"));
+                  etTrigger.setText(prefs.getString("voice_trigger", "jarvis"));
+                  etPin.setText(prefs.getString("security_pin", "3000"));
+
+                  btnSave.setOnClickListener(v -> {
+                      String name = etName.getText().toString().trim();
+                      String trigger = etTrigger.getText().toString().trim().toLowerCase();
+                      String pin = etPin.getText().toString().trim();
+                      if (name.isEmpty() || trigger.isEmpty() || pin.length() < 4) {
+                          Toast.makeText(this, "Complete all security fields, sir.", Toast.LENGTH_SHORT).show();
+                          return;
+                      }
+                      prefs.edit()
+                              .putBoolean("is_setup_done", true)
+                              .putString("user_name", name)
+                              .putString("voice_trigger", trigger)
+                              .putString("security_pin", pin)
+                              .apply();
+                      Toast.makeText(this, "Protocol Initialized: " + name, Toast.LENGTH_SHORT).show();
+                      startActivity(new Intent(SetupWizardActivity.this, MainActivity.class));
+                      finish();
+                  });
+              }
+          }
+          EOF
+
+          cat << 'EOF' > app/src/main/java/com/stark/jarvis/SecurityGateActivity.java
+          package com.stark.jarvis;
+          import android.content.Context;
+          import android.content.Intent;
+          import android.content.SharedPreferences;
+          import android.os.Bundle;
+          import android.speech.RecognitionListener;
+          import android.speech.RecognizerIntent;
+          import android.speech.SpeechRecognizer;
+          import android.speech.tts.TextToSpeech;
+          import android.widget.Button;
+          import android.widget.EditText;
+          import android.widget.TextView;
+          import android.widget.Toast;
+          import androidx.annotation.NonNull;
+          import androidx.appcompat.app.AlertDialog;
+          import androidx.appcompat.app.AppCompatActivity;
+          import androidx.biometric.BiometricPrompt;
+          import androidx.core.content.ContextCompat;
+          import java.util.ArrayList;
+          import java.util.Locale;
+
+          public class SecurityGateActivity extends AppCompatActivity {
+              private TextToSpeech tts;
+              private SpeechRecognizer recognizer;
+              private TextView tvStatus, tvAttempts;
+              private int failedAttempts = 0;
+              private SharedPreferences prefs;
+
+              @Override
+              protected void onCreate(Bundle savedInstanceState) {
+                  super.onCreate(savedInstanceState);
+                  setContentView(R.layout.activity_security_gate);
+                  prefs = getSharedPreferences("JarvisPrefs", Context.MODE_PRIVATE);
+                  tvStatus = findViewById(R.id.tvGateStatus);
+                  tvAttempts = findViewById(R.id.tvAttempts);
+
+                  Button btnVoice = findViewById(R.id.btnVoiceAuth);
+                  Button btnBiometric = findViewById(R.id.btnBiometricAuth);
+                  Button btnPin = findViewById(R.id.btnPinAuth);
+
+                  initTTS();
+                  initSpeechRecognizer();
+
+                  btnVoice.setOnClickListener(v -> listenVoice());
+                  btnBiometric.setOnClickListener(v -> launchBiometrics());
+                  btnPin.setOnClickListener(v -> promptPinDialog());
+              }
+
+              private void initTTS() {
+                  tts = new TextToSpeech(this, status -> {
+                      if (status == TextToSpeech.SUCCESS) {
+                          tts.setLanguage(Locale.US);
+                          speak("Security clearance active. Verify voice print or biometrics.");
+                      }
+                  });
+              }
+
+              private void initSpeechRecognizer() {
+                  recognizer = SpeechRecognizer.createSpeechRecognizer(this);
+                  recognizer.setRecognitionListener(new RecognitionListener() {
+                      @Override
+                      public void onResults(Bundle results) {
+                          ArrayList<String> matches = results.getStringArrayList(SpeechRecognizer.RESULTS_RECOGNITION);
+                          if (matches != null && !matches.isEmpty()) {
+                              String spoken = matches.get(0).toLowerCase();
+                              String registeredTrigger = prefs.getString("voice_trigger", "jarvis");
+                              if (spoken.contains(registeredTrigger)) {
+                                  grantAccess();
+                              } else {
+                                  handleFailure();
+                              }
+                          }
+                      }
+                      @Override public void onReadyForSpeech(Bundle params) { tvStatus.setText("LISTENING..."); }
+                      @Override public void onError(int error) { handleFailure(); }
+                      @Override public void onBeginningOfSpeech() {}
+                      @Override public void onRmsChanged(float rmsdB) {}
+                      @Override public void onBufferReceived(byte[] buffer) {}
+                      @Override public void onEndOfSpeech() {}
+                      @Override public void onPartialResults(Bundle partialResults) {}
+                      @Override public void onEvent(int eventType, Bundle params) {}
+                  });
+              }
+
+              private void listenVoice() {
+                  if (failedAttempts >= 3) {
+                      promptPinDialog();
+                      return;
+                  }
+                  Intent intent = new Intent(RecognizerIntent.ACTION_RECOGNIZE_SPEECH);
+                  intent.putExtra(RecognizerIntent.EXTRA_LANGUAGE_MODEL, RecognizerIntent.LANGUAGE_MODEL_FREE_FORM);
+                  intent.putExtra(RecognizerIntent.EXTRA_LANGUAGE, Locale.getDefault());
+                  recognizer.startListening(intent);
+              }
+
+              private void handleFailure() {
+                  failedAttempts++;
+                  int left = 3 - failedAttempts;
+                  tvAttempts.setText("Voice attempts remaining: " + Math.max(0, left));
+                  if (failedAttempts >= 3) {
+                      speak("Three failed attempts detected. PIN entry required.");
+                      promptPinDialog();
+                  } else {
+                      speak("Voice signature mismatch. Try again.");
+                  }
+              }
+
+              private void launchBiometrics() {
+                  BiometricPrompt prompt = new BiometricPrompt(this,
+                          ContextCompat.getMainExecutor(this), new BiometricPrompt.AuthenticationCallback() {
+                      @Override
+                      public void onAuthenticationSucceeded(@NonNull BiometricPrompt.AuthenticationResult result) {
+                          grantAccess();
+                      }
+                      @Override
+                      public void onAuthenticationFailed() {
+                          speak("Biometric verification failed.");
+                      }
+                  });
+
+                  BiometricPrompt.PromptInfo info = new BiometricPrompt.PromptInfo.Builder()
+                          .setTitle("Mark 1 Biometric Clearance")
+                          .setSubtitle("Authenticate Face or Fingerprint")
+                          .setNegativeButtonText("Use PIN")
+                          .build();
+
+                  prompt.authenticate(info);
+              }
+
+              private void promptPinDialog() {
+                  EditText input = new EditText(this);
+                  input.setInputType(android.text.InputType.TYPE_CLASS_NUMBER | android.text.InputType.TYPE_NUMBER_VARIATION_PASSWORD);
+
+                  new AlertDialog.Builder(this)
+                          .setTitle("Security Override")
+                          .setMessage("Enter 4-Digit Security PIN:")
+                          .setView(input)
+                          .setPositiveButton("VERIFY", (d, w) -> {
+                              String entered = input.getText().toString().trim();
+                              String savedPin = prefs.getString("security_pin", "3000");
+                              if (entered.equals(savedPin)) {
+                                  grantAccess();
+                              } else {
+                                  Toast.makeText(this, "Access Denied. Incorrect PIN.", Toast.LENGTH_SHORT).show();
+                              }
+                          })
+                          .setNegativeButton("CANCEL", null)
+                          .show();
+              }
+
+              private void grantAccess() {
+                  speak("Identity confirmed. Access granted, " + prefs.getString("user_name", "Sir"));
+                  startActivity(new Intent(this, MainActivity.class));
+                  finish();
+              }
+
+              private void speak(String msg) {
+                  if (tts != null) tts.speak(msg, TextToSpeech.QUEUE_FLUSH, null, null);
+              }
+
+              @Override
+              protected void onDestroy() {
+                  if (tts != null) { tts.stop(); tts.shutdown(); }
+                  if (recognizer != null) { recognizer.destroy(); }
+                  super.onDestroy();
+              }
+          }
+          EOF
+
+          cat << 'EOF' > app/src/main/java/com/stark/jarvis/SettingsActivity.java
+          package com.stark.jarvis;
+          import android.content.Context;
+          import android.content.Intent;
+          import android.content.SharedPreferences;
+          import android.os.Bundle;
+          import android.widget.Button;
+          import android.widget.TextView;
+          import android.widget.Toast;
+          import androidx.appcompat.app.AlertDialog;
+          import androidx.appcompat.app.AppCompatActivity;
+
+          public class SettingsActivity extends AppCompatActivity {
+              @Override
+              protected void onCreate(Bundle savedInstanceState) {
+                  super.onCreate(savedInstanceState);
+                  setContentView(R.layout.activity_settings);
+                  SharedPreferences prefs = getSharedPreferences("JarvisPrefs", Context.MODE_PRIVATE);
+                  TextView tvConfig = findViewById(R.id.tvCurrentConfig);
+                  Button btnEdit = findViewById(R.id.btnEditProfile);
+                  Button btnReset = findViewById(R.id.btnResetEverything);
+
+                  String name = prefs.getString("user_name", "Sir");
+                  String trigger = prefs.getString("voice_trigger", "jarvis");
+
+                  tvConfig.setText("User Designation: " + name + "\nVoice Wake Command: \"" + trigger + "\"\nSystem Status: Operational\nOwner & Patentee: Amin Ansari");
+
+                  btnEdit.setOnClickListener(v -> {
+                      startActivity(new Intent(SettingsActivity.this, SetupWizardActivity.class));
+                      finish();
+                  });
+
+                  btnReset.setOnClickListener(v -> {
+                      new AlertDialog.Builder(this)
+                              .setTitle("Reset Mark 1 Protocol?")
+                              .setMessage("This will erase all voice credentials and security configurations.")
+                              .setPositiveButton("ERASE", (dialog, which) -> {
+                                  prefs.edit().clear().apply();
+                                  Toast.makeText(this, "Memory Purged. Rebooting...", Toast.LENGTH_SHORT).show();
+                                  Intent i = new Intent(SettingsActivity.this, SetupWizardActivity.class);
+                                  i.setFlags(Intent.FLAG_ACTIVITY_NEW_TASK | Intent.FLAG_ACTIVITY_CLEAR_TASK);
+                                  startActivity(i);
+                                  finish();
+                              })
+                              .setNegativeButton("CANCEL", null)
+                              .show();
+                  });
+              }
+          }
+          EOF
+
+          cat << 'EOF' > app/src/main/java/com/stark/jarvis/AppLauncher.java
+          package com.stark.jarvis;
+          import android.content.Context;
+          import android.content.Intent;
+          import android.content.pm.ApplicationInfo;
+          import android.content.pm.PackageManager;
+          import java.util.List;
+
+          public class AppLauncher {
+              private final Context context;
+              private final PackageManager pm;
+              public AppLauncher(Context context) {
+                  this.context = context;
+                  this.pm = context.getPackageManager();
+              }
+              public boolean openAppByName(String target) {
+                  List<ApplicationInfo> apps = pm.getInstalledApplications(PackageManager.GET_META_DATA);
+                  String cleanTarget = target.toLowerCase().trim();
+                  for (ApplicationInfo app : apps) {
+                      String label = pm.getApplicationLabel(app).toString().toLowerCase();
+                      if (label.contains(cleanTarget) || cleanTarget.contains(label)) {
+                          Intent intent = pm.getLaunchIntentForPackage(app.packageName);
+                          if (intent != null) {
+                              intent.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK);
+                              context.startActivity(intent);
+                              return true;
+                          }
+                      }
+                  }
+                  return false;
+              }
+          }
+          EOF
+
+          cat << 'EOF' > app/src/main/java/com/stark/jarvis/MediaController.java
+          package com.stark.jarvis;
+          import android.content.Context;
+          import android.media.AudioManager;
+          import android.view.KeyEvent;
+
+          public class MediaController {
+              private final AudioManager am;
+              public MediaController(Context context) {
+                  this.am = (AudioManager) context.getSystemService(Context.AUDIO_SERVICE);
+              }
+              public void playPause() { dispatch(KeyEvent.KEYCODE_MEDIA_PLAY_PAUSE); }
+              public void next() { dispatch(KeyEvent.KEYCODE_MEDIA_NEXT); }
+              public void volumeUp() { am.adjustStreamVolume(AudioManager.STREAM_MUSIC, AudioManager.ADJUST_RAISE, AudioManager.FLAG_SHOW_UI); }
+              public void volumeDown() { am.adjustStreamVolume(AudioManager.STREAM_MUSIC, AudioManager.ADJUST_LOWER, AudioManager.FLAG_SHOW_UI); }
+              private void dispatch(int code) {
+                  am.dispatchMediaKeyEvent(new KeyEvent(KeyEvent.ACTION_DOWN, code));
+                  am.dispatchMediaKeyEvent(new KeyEvent(KeyEvent.ACTION_UP, code));
+              }
+          }
+          EOF
+
+          cat << 'EOF' > app/src/main/java/com/stark/jarvis/SmsHelper.java
+          package com.stark.jarvis;
+          import android.content.Context;
+          import android.database.Cursor;
+          import android.net.Uri;
+          import android.provider.ContactsContract;
+          import android.telephony.SmsManager;
+
+          public class SmsHelper {
+              private final Context context;
+              public SmsHelper(Context context) { this.context = context; }
+              public boolean sendSms(String recipient, String message) {
+                  String number = recipient.replaceAll("[^0-9+]", "");
+                  if (number.isEmpty()) number = getNumberFromName(recipient);
+                  if (number == null || number.isEmpty()) return false;
+                  try {
+                      SmsManager smsManager = SmsManager.getDefault();
+                      smsManager.sendTextMessage(number, null, message, null, null);
+                      return true;
+                  } catch (Exception e) {
+                      return false;
+                  }
+              }
+              private String getNumberFromName(String name) {
+                  Uri uri = ContactsContract.CommonDataKinds.Phone.CONTENT_URI;
+                  String[] projection = {ContactsContract.CommonDataKinds.Phone.NUMBER};
+                  String selection = ContactsContract.CommonDataKinds.Phone.DISPLAY_NAME + " LIKE ?";
+                  String[] args = new String[]{"%" + name + "%"};
+                  try (Cursor cursor = context.getContentResolver().query(uri, projection, selection, args, null)) {
+                      if (cursor != null && cursor.moveToFirst()) return cursor.getString(0);
+                  } catch (Exception ignored) {}
+                  return null;
+              }
+          }
+          EOF
+
+          cat << 'EOF' > app/src/main/java/com/stark/jarvis/NotesManager.java
+          package com.stark.jarvis;
+          import android.content.Context;
+          import java.io.BufferedReader;
+          import java.io.File;
+          import java.io.FileInputStream;
+          import java.io.FileOutputStream;
+          import java.io.InputStreamReader;
+          import java.text.SimpleDateFormat;
+          import java.util.Date;
+          import java.util.Locale;
+
+          public class NotesManager {
+              private static final String FILE_NAME = "jarvis_vault.txt";
+              private final Context context;
+              public NotesManager(Context context) { this.context = context; }
+              public boolean saveNote(String note) {
+                  if (note == null || note.trim().isEmpty()) return false;
+                  String time = new SimpleDateFormat("dd MMM, hh:mm a", Locale.getDefault()).format(new Date());
+                  String entry = "[" + time + "] " + note.trim() + "\n";
+                  try (FileOutputStream fos = context.openFileOutput(FILE_NAME, Context.MODE_APPEND)) {
+                      fos.write(entry.getBytes());
+                      return true;
+                  } catch (Exception e) {
+                      return false;
+                  }
+              }
+              public String readNotes() {
+                  File file = new File(context.getFilesDir(), FILE_NAME);
+                  if (!file.exists()) return null;
+                  StringBuilder sb = new StringBuilder();
+                  try (FileInputStream fis = context.openFileInput(FILE_NAME);
+                       BufferedReader reader = new BufferedReader(new InputStreamReader(fis))) {
+                      String line;
+                      while ((line = reader.readLine()) != null) sb.append(line).append(". ");
+                      return sb.toString().trim();
+                  } catch (Exception e) {
+                      return null;
+                  }
+              }
+              public boolean clearNotes() {
+                  File file = new File(context.getFilesDir(), FILE_NAME);
+                  return file.delete();
+              }
+          }
+          EOF
+
+          cat << 'EOF' > app/src/main/java/com/stark/jarvis/IncomingCallReceiver.java
+          package com.stark.jarvis;
+          import android.content.BroadcastReceiver;
+          import android.content.Context;
+          import android.content.Intent;
+          import android.content.SharedPreferences;
+          import android.database.Cursor;
+          import android.net.Uri;
+          import android.provider.ContactsContract;
+          import android.speech.tts.TextToSpeech;
+          import android.telephony.TelephonyManager;
+          import java.util.Locale;
+
+          public class IncomingCallReceiver extends BroadcastReceiver {
+              private static TextToSpeech tts;
+              @Override
+              public void onReceive(Context context, Intent intent) {
+                  SharedPreferences prefs = context.getSharedPreferences("JarvisPrefs", Context.MODE_PRIVATE);
+                  if (prefs.getBoolean("is_system_disabled", false)) return;
+                  if (!TelephonyManager.ACTION_PHONE_STATE_CHANGED.equals(intent.getAction())) return;
+                  String state = intent.getStringExtra(TelephonyManager.EXTRA_STATE);
+                  if (TelephonyManager.EXTRA_STATE_RINGING.equals(state)) {
+                      String number = intent.getStringExtra(TelephonyManager.EXTRA_INCOMING_NUMBER);
+                      String name = resolveName(context, number);
+                      String announcement = (name != null) ? "Incoming call from " + name : "Incoming call from unknown number.";
+                      if (tts == null) {
+                          tts = new TextToSpeech(context.getApplicationContext(), s -> {
+                              if (s == TextToSpeech.SUCCESS) {
+                                  tts.setLanguage(Locale.US);
+                                  tts.speak(announcement, TextToSpeech.QUEUE_FLUSH, null, "RING");
+                              }
+                          });
+                      } else {
+                          tts.speak(announcement, TextToSpeech.QUEUE_FLUSH, null, "RING");
+                      }
+                  } else if (TelephonyManager.EXTRA_STATE_IDLE.equals(state) && tts != null) {
+                      tts.stop();
+                  }
+              }
+              private String resolveName(Context ctx, String number) {
+                  if (number == null) return null;
+                  Uri uri = Uri.withAppendedPath(ContactsContract.PhoneLookup.CONTENT_FILTER_URI, Uri.encode(number));
+                  try (Cursor cursor = ctx.getContentResolver().query(uri, new String[]{ContactsContract.PhoneLookup.DISPLAY_NAME}, null, null, null)) {
+                      if (cursor != null && cursor.moveToFirst()) return cursor.getString(0);
+                  } catch (Exception ignored) {}
+                  return null;
+              }
+          }
+          EOF
+
+          cat << 'EOF' > app/src/main/java/com/stark/jarvis/JarvisNotificationService.java
+          package com.stark.jarvis;
+          import android.app.Notification;
+          import android.app.PendingIntent;
+          import android.app.RemoteInput;
+          import android.content.Context;
+          import android.content.Intent;
+          import android.content.SharedPreferences;
+          import android.content.pm.ApplicationInfo;
+          import android.content.pm.PackageManager;
+          import android.os.Bundle;
+          import android.service.notification.NotificationListenerService;
+          import android.service.notification.StatusBarNotification;
+          import android.speech.tts.TextToSpeech;
+          import java.util.Locale;
+
+          public class JarvisNotificationService extends NotificationListenerService {
+              private static TextToSpeech tts;
+              public static Notification.Action activeReplyAction = null;
+              public static RemoteInput activeRemoteInput = null;
+
+              @Override
+              public void onCreate() {
+                  super.onCreate();
+                  tts = new TextToSpeech(getApplicationContext(), status -> {
+                      if (status == TextToSpeech.SUCCESS) {
+                          tts.setLanguage(new Locale("hi", "IN"));
+                          tts.setPitch(0.9f);
+                      }
+                  });
+              }
+
+              @Override
+              public void onNotificationPosted(StatusBarNotification sbn) {
+                  SharedPreferences prefs = getSharedPreferences("JarvisPrefs", Context.MODE_PRIVATE);
+                  boolean isDisabled = prefs.getBoolean("is_system_disabled", false);
+                  if (isDisabled) return;
+                  if (sbn.getPackageName().equals(getPackageName())) return;
+                  if ((sbn.getNotification().flags & Notification.FLAG_ONGOING_EVENT) != 0) return;
+
+                  Bundle extras = sbn.getNotification().extras;
+                  if (extras == null) return;
+                  String title = extras.getString(Notification.EXTRA_TITLE, "");
+                  CharSequence textSeq = extras.getCharSequence(Notification.EXTRA_TEXT);
+                  String message = (textSeq != null) ? textSeq.toString() : "";
+                  if (title.isEmpty() || message.isEmpty()) return;
+
+                  Notification.Action[] actions = sbn.getNotification().actions;
+                  if (actions != null) {
+                      for (Notification.Action action : actions) {
+                          if (action.getRemoteInputs() != null) {
+                              for (RemoteInput input : action.getRemoteInputs()) {
+                                  activeReplyAction = action;
+                                  activeRemoteInput = input;
+                                  break;
+                              }
+                          }
+                      }
+                  }
+
+                  String appName = "Application";
+                  try {
+                      PackageManager pm = getPackageManager();
+                      ApplicationInfo info = pm.getApplicationInfo(sbn.getPackageName(), 0);
+                      appName = pm.getApplicationLabel(info).toString();
+                  } catch (Exception ignored) {}
+
+                  String announcement = appName + " par " + title + " ka message hai: " + message;
+                  if (tts != null) tts.speak(announcement, TextToSpeech.QUEUE_ADD, null, "NOTIF");
+              }
+
+              public static boolean sendQuickReply(Context context, String replyText) {
+                  if (activeReplyAction == null || activeRemoteInput == null) return false;
+                  Intent intent = new Intent();
+                  Bundle bundle = new Bundle();
+                  bundle.putCharSequence(activeRemoteInput.getResultKey(), replyText);
+                  RemoteInput.addResultsToIntent(new RemoteInput[]{activeRemoteInput}, intent, bundle);
+                  try {
+                      activeReplyAction.actionIntent.send(context, 0, intent);
+                      activeReplyAction = null;
+                      activeRemoteInput = null;
+                      return true;
+                  } catch (PendingIntent.CanceledException e) {
+                      return false;
+                  }
+              }
+
+              @Override
+              public void onDestroy() {
+                  if (tts != null) { tts.stop(); tts.shutdown(); }
+                  super.onDestroy();
+              }
+          }
+          EOF
+
+          cat << 'EOF' > app/src/main/java/com/stark/jarvis/MainActivity.java
+          package com.stark.jarvis;
+          import android.Manifest;
+          import android.content.Context;
+          import android.content.Intent;
+          import android.content.SharedPreferences;
+          import android.content.pm.PackageManager;
+          import android.os.Build;
+          import android.os.Bundle;
+          import android.speech.RecognitionListener;
+          import android.speech.RecognizerIntent;
+          import android.speech.SpeechRecognizer;
+          import android.speech.tts.TextToSpeech;
+          import android.speech.tts.UtteranceProgressListener;
+          import android.telecom.TelecomManager;
+          import android.widget.Button;
+          import android.widget.ImageView;
+          import android.widget.TextView;
+          import androidx.appcompat.app.AppCompatActivity;
+          import androidx.core.app.ActivityCompat;
+          import java.util.ArrayList;
+          import java.util.Locale;
+
+          public class MainActivity extends AppCompatActivity {
+              private TextToSpeech tts;
+              private SpeechRecognizer recognizer;
+              private TextView tvStatus, tvSubtitle;
+              private AppLauncher appLauncher;
+              private MediaController mediaController;
+              private SmsHelper smsHelper;
+              private NotesManager notesManager;
+              private SharedPreferences prefs;
+              private String userName;
+              private String voiceTrigger;
+              private boolean isSystemDisabled = false;
+
+              @Override
+              protected void onCreate(Bundle savedInstanceState) {
+                  super.onCreate(savedInstanceState);
+                  setContentView(R.layout.activity_main);
+                  prefs = getSharedPreferences("JarvisPrefs", Context.MODE_PRIVATE);
+                  userName = prefs.getString("user_name", "Sir");
+                  voiceTrigger = prefs.getString("voice_trigger", "jarvis");
+                  isSystemDisabled = prefs.getBoolean("is_system_disabled", false);
+
+                  tvStatus = findViewById(R.id.tvMainStatus);
+                  tvSubtitle = findViewById(R.id.tvSubtitle);
+                  ImageView ivReactor = findViewById(R.id.ivArcReactorBtn);
+                  Button btnSettings = findViewById(R.id.btnOpenSettings);
+
+                  appLauncher = new AppLauncher(this);
+                  mediaController = new MediaController(this);
+                  smsHelper = new SmsHelper(this);
+                  notesManager = new NotesManager(this);
+
+                  updateUIStatus();
+                  btnSettings.setOnClickListener(v -> startActivity(new Intent(this, SettingsActivity.class)));
+                  ivReactor.setOnClickListener(v -> listen());
+
+                  requestPermissions();
+                  initTTS();
+                  initSpeechRecognizer();
+              }
+
+              private void updateUIStatus() {
+                  if (isSystemDisabled) {
+                      tvStatus.setText("MARK 1 // STAND-DOWN");
+                      tvSubtitle.setText("Systems in hibernation. Say '" + voiceTrigger + " activate' to wake.");
+                  } else {
+                      tvStatus.setText("MARK 1 // ONLINE");
+                      tvSubtitle.setText("Systems awaiting orders, " + userName + ".");
+                  }
+              }
+
+              private void requestPermissions() {
+                  String[] perms = {
+                          Manifest.permission.RECORD_AUDIO,
+                          Manifest.permission.READ_PHONE_STATE,
+                          Manifest.permission.READ_CALL_LOG,
+                          Manifest.permission.READ_CONTACTS,
+                          Manifest.permission.ANSWER_PHONE_CALLS,
+                          Manifest.permission.SEND_SMS
+                  };
+                  ActivityCompat.requestPermissions(this, perms, 100);
+              }
+
+              private void initTTS() {
+                  tts = new TextToSpeech(this, status -> {
+                      if (status == TextToSpeech.SUCCESS) {
+                          tts.setLanguage(new Locale("hi", "IN"));
+                          tts.setPitch(0.9f);
+                          tts.setOnUtteranceProgressListener(new UtteranceProgressListener() {
+                              @Override public void onStart(String utteranceId) {}
+                              @Override public void onError(String utteranceId) {}
+                              @Override
+                              public void onDone(String utteranceId) {
+                                  if ("WAIT_LOOP".equals(utteranceId) && !isSystemDisabled) {
+                                      runOnUiThread(() -> listen());
+                                  }
+                              }
+                          });
+                          if (!isSystemDisabled) speak("Mark 1 online hai " + userName + ". Aadesh kijiye.", false);
+                      }
+                  });
+              }
+
+              private void initSpeechRecognizer() {
+                  recognizer = SpeechRecognizer.createSpeechRecognizer(this);
+                  recognizer.setRecognitionListener(new RecognitionListener() {
+                      @Override
+                      public void onResults(Bundle results) {
+                          ArrayList<String> matches = results.getStringArrayList(SpeechRecognizer.RESULTS_RECOGNITION);
+                          if (matches != null && !matches.isEmpty()) executeCommand(matches.get(0).toLowerCase());
+                      }
+                      @Override public void onReadyForSpeech(Bundle params) { tvStatus.setText("LISTENING..."); }
+                      @Override public void onError(int error) { updateUIStatus(); }
+                      @Override public void onBeginningOfSpeech() {}
+                      @Override public void onRmsChanged(float rmsdB) {}
+                      @Override public void onBufferReceived(byte[] buffer) {}
+                      @Override public void onEndOfSpeech() { tvStatus.setText("PROCESSING..."); }
+                      @Override public void onPartialResults(Bundle partialResults) {}
+                      @Override public void onEvent(int eventType, Bundle params) {}
+                  });
+              }
+
+              private void executeCommand(String cmd) {
+                  tvSubtitle.setText("Command: " + cmd);
+
+                  // 1. OWNER & PATENT QUERY
+                  if (cmd.contains("owner") || cmd.contains("creator") || cmd.contains("banaya") || cmd.contains("who made you")) {
+                      speak("Mera naam Mark 1 Jarvis hai. Mere creator, owner aur system architect Amin Ansari hain, aur iska patent unhi ke naam par hai.", true);
+                      return;
+                  }
+
+                  // 2. WAKE UP PROTOCOL
+                  if (isSystemDisabled) {
+                      if (cmd.contains("activate") || cmd.contains("wake up") || cmd.contains("on ho jao") || cmd.contains("chalu ho")) {
+                          isSystemDisabled = false;
+                          prefs.edit().putBoolean("is_system_disabled", false).apply();
+                          updateUIStatus();
+                          speak("Mark 1 reactivated. All systems online, " + userName + ".", true);
+                      }
+                      return;
+                  }
+
+                  // 3. DISABLE / STAND-DOWN
+                  if (cmd.contains("disable ho jao") || cmd.contains("stand down") || cmd.contains("sleep mode") || cmd.contains("so jao") || cmd.contains("shutdown")) {
+                      isSystemDisabled = true;
+                      prefs.edit().putBoolean("is_system_disabled", true).apply();
+                      updateUIStatus();
+                      speak("Standing down, " + userName + ". Mark 1 entering hibernation mode. Aawaz dijiye jab zaroorat ho.", false);
+                      return;
+                  }
+
+                  // 4. SETTINGS
+                  if (cmd.contains("settings") || cmd.contains("reset profile")) {
+                      speak("Settings open kar raha hoon " + userName, false);
+                      startActivity(new Intent(this, SettingsActivity.class));
+                      return;
+                  }
+
+                  // 5. CALL CONTROLS
+                  if (cmd.contains("receive") || cmd.contains("uthao") || cmd.contains("pick")) {
+                      handleCallAction(true);
+                      return;
+                  }
+                  if (cmd.contains("cut") || cmd.contains("reject") || cmd.contains("disconnect")) {
+                      handleCallAction(false);
+                      return;
+                  }
+
+                  // 6. MEDIA CONTROLS
+                  if (cmd.contains("play") || cmd.contains("pause") || cmd.contains("gana")) {
+                      mediaController.playPause();
+                      speak("Media state updated " + userName + ". Aage kya karna hai?", true);
+                      return;
+                  }
+                  if (cmd.contains("next")) {
+                      mediaController.next();
+                      speak("Playing next track, " + userName + ".", true);
+                      return;
+                  }
+                  if (cmd.contains("volume up") || cmd.contains("awaaj badhao")) {
+                      mediaController.volumeUp();
+                      speak("Volume badha di gayi hai. Aage batayein?", true);
+                      return;
+                  }
+                  if (cmd.contains("volume down") || cmd.contains("awaaj kam karo")) {
+                      mediaController.volumeDown();
+                      speak("Volume kam kar di gayi hai.", true);
+                      return;
+                  }
+
+                  // 7. NOTIFICATION QUICK REPLY
+                  if (cmd.startsWith("reply") || cmd.startsWith("jawab do")) {
+                      String replyText = cmd.replace("reply", "").replace("jawab do", "").trim();
+                      boolean sent = JarvisNotificationService.sendQuickReply(this, replyText);
+                      speak(sent ? "Reply bhej diya gaya hai, " + userName + "." : "Active message nahi mila reply ke liye.", true);
+                      return;
+                  }
+
+                  // 8. DIRECT SMS
+                  if (cmd.contains("message bhejo") || cmd.contains("sms karo")) {
+                      String clean = cmd.replace("message bhejo", "").replace("sms karo", "").trim();
+                      String[] parts = clean.split(" ko ");
+                      if (parts.length == 2) {
+                          boolean sent = smsHelper.sendSms(parts[0].trim(), parts[1].trim());
+                          speak(sent ? parts[0] + " ko message send ho gaya hai." : "Contact number nahi mila sir.", true);
+                      }
+                      return;
+                  }
+
+                  // 9. VOICE NOTES
+                  if (cmd.contains("note likho") || cmd.contains("save note")) {
+                      String note = cmd.replace("note likho", "").replace("save note", "").replace(voiceTrigger, "").trim();
+                      notesManager.saveNote(note);
+                      speak("Note record ho gaya: " + note + ". Aage batayein " + userName + "?", true);
+                      return;
+                  }
+                  if (cmd.contains("note sunao") || cmd.contains("read notes")) {
+                      String notes = notesManager.readNotes();
+                      speak(notes != null ? "Saved notes: " + notes : "Vault empty hai sir.", true);
+                      return;
+                  }
+
+                  // 10. APP LAUNCHER
+                  if (cmd.contains("open") || cmd.contains("kholo")) {
+                      String app = cmd.replace("open", "").replace("kholo", "").replace(voiceTrigger, "").trim();
+                      boolean launched = appLauncher.openAppByName(app);
+                      speak(launched ? "Ji " + userName + ", " + app + " open kar diya hai. Aage batayein?" : "App nahi mili sir.", true);
+                      return;
+                  }
+
+                  speak("Order registered, " + userName + ". Aage kya aadesh hai?", true);
+              }
+
+              private void handleCallAction(boolean accept) {
+                  TelecomManager tm = (TelecomManager) getSystemService(Context.TELECOM_SERVICE);
+                  if (tm != null && ActivityCompat.checkSelfPermission(this, Manifest.permission.ANSWER_PHONE_CALLS) == PackageManager.PERMISSION_GRANTED) {
+                      if (accept && Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
+                          tm.acceptRingingCall();
+                          speak("Call accept ho gayi hai, " + userName + ".", false);
+                      } else if (!accept && Build.VERSION.SDK_INT >= Build.VERSION_CODES.P) {
+                          tm.endCall();
+                          speak("Call disconnect kar di gayi hai.", false);
+                      }
+                  }
+              }
+
+              private void listen() {
+                  Intent intent = new Intent(RecognizerIntent.ACTION_RECOGNIZE_SPEECH);
+                  intent.putExtra(RecognizerIntent.EXTRA_LANGUAGE_MODEL, RecognizerIntent.LANGUAGE_MODEL_FREE_FORM);
+                  intent.putExtra(RecognizerIntent.EXTRA_LANGUAGE, Locale.getDefault());
+                  recognizer.startListening(intent);
+              }
+
+              private void speak(String text, boolean loop) {
+                  if (tts != null) {
+                      tts.speak(text, TextToSpeech.QUEUE_FLUSH, null, loop ? "WAIT_LOOP" : "NORMAL");
+                  }
+              }
+
+              @Override
+              protected void onDestroy() {
+                  if (tts != null) { tts.stop(); tts.shutdown(); }
+                  if (recognizer != null) { recognizer.destroy(); }
+                  super.onDestroy();
+              }
+          }
+          EOF
+
+      - name: Setup Java JDK 17
+        uses: actions/setup-java@v4
+        with:
+          distribution: 'temurin'
+          java-version: '17'
+
+      - name: Setup Gradle
+        uses: gradle/actions/setup-gradle@v3
+        with:
+          gradle-version: '8.5'
+
+      - name: Compile Mark 1 APK
+        run: gradle assembleDebug
+
+      - name: Upload Finished APK
+        uses: actions/upload-artifact@v4
+        with:
+          name: Mark1-Jarvis-APK
+          path: app/build/outputs/apk/debug/app-debug.apk

@@ -16,6 +16,11 @@ jobs:
           mkdir -p app/src/main/res/layout
           mkdir -p app/src/main/res/values
 
+          cat << 'EOF' > gradle.properties
+          android.useAndroidX=true
+          android.enableJetifier=true
+          EOF
+
           cat << 'EOF' > settings.gradle
           pluginManagement {
               repositories {
@@ -682,7 +687,7 @@ jobs:
               }
 
               private void grantAccess() {
-                  speak("Identity confirmed. Access granted, " + prefs.getString("user_name", "Sir"));
+                  speak("Identity confirmed. Welcome, " + prefs.getString("user_name", "Sir"));
                   startActivity(new Intent(this, MainActivity.class));
                   finish();
               }
